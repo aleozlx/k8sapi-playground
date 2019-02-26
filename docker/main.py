@@ -1,6 +1,7 @@
 # pylint: disable=import-error,no-name-in-module
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
+import yaml
 import time
 import sys
 print("Hello")
@@ -33,10 +34,27 @@ print(job_spec)
 
 # https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/V1Job.md
 try:
-    jobApi.create_namespaced_job(namespace, client.V1Job(
-        metadata=client.V1ObjectMeta(generate_name='test-job-'),
-        spec=job_spec
-    ), pretty='true')
+    # jobApi.create_namespaced_job(namespace, client.V1Job(
+    #     metadata=client.V1ObjectMeta(generate_name='test-job-'),
+    #     spec=job_spec
+    # ), pretty='true')
+
+    jobApi.create_namespaced_job(namespace, body=yaml.safe_load("""---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: test-job-
+spec:
+  template:
+    metadata:
+      name: test_job
+    spec:
+      containers:
+        - name: test
+          image: busybox
+          command: ["hostname"]
+      restartPolicy: Never
+"""), pretty='true')
 except ApiException as e:
     print('ApiException:', e.reason)
     print(e.body)
