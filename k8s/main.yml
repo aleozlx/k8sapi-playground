@@ -5,7 +5,7 @@ items:
   - kind: ClusterRole
     apiVersion: rbac.authorization.k8s.io/v1
     metadata:
-      name: playground
+      name: celery-jobq:playground
       namespace: celery-jobq
     rules:
     - apiGroups: [""]
@@ -14,7 +14,7 @@ items:
   - kind: ClusterRoleBinding
     apiVersion: rbac.authorization.k8s.io/v1
     metadata:
-      name: playground
+      name: celery-jobq:playground
       namespace: celery-jobq
     subjects:
     - kind: ServiceAccount
@@ -22,16 +22,45 @@ items:
       namespace: celery-jobq
     roleRef:
       kind: ClusterRole
-      name: playground
+      name: celery-jobq:playground
       apiGroup: rbac.authorization.k8s.io
-  - kind: Pod
-    apiVersion: v1
+
+# ref: https://github.com/kubernetes/kubernetes/blob/master/plugin/pkg/auth/authorizer/rbac/bootstrappolicy/testdata/cluster-roles.yaml
+  - kind: ClusterRoleBinding
+    apiVersion: rbac.authorization.k8s.io/v1
     metadata:
-      name: playground
-      labels:
-        app: celery-jobq
+      name: celery-jobq:reporter
       namespace: celery-jobq
-    spec:
-      containers:
-        - name: playground
-          image: aleozlx/k8sapi-playground
+    subjects:
+    - kind: ServiceAccount
+      name: default
+      namespace: celery-jobq
+    roleRef:
+      kind: ClusterRole
+      name: system:aggregate-to-view
+      apiGroup: rbac.authorization.k8s.io
+  - kind: ClusterRoleBinding
+    apiVersion: rbac.authorization.k8s.io/v1
+    metadata:
+      name: celery-jobq:job-manager
+      namespace: celery-jobq
+    subjects:
+    - kind: ServiceAccount
+      name: default
+      namespace: celery-jobq
+    roleRef:
+      kind: ClusterRole
+      name: system:aggregate-to-edit
+      apiGroup: rbac.authorization.k8s.io
+
+  # - kind: Pod
+  #   apiVersion: v1
+  #   metadata:
+  #     name: playground
+  #     labels:
+  #       app: celery-jobq
+  #     namespace: celery-jobq
+  #   spec:
+  #     containers:
+  #       - name: playground
+  #         image: aleozlx/k8sapi-playground
